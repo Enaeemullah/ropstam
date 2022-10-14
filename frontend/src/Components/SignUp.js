@@ -1,29 +1,18 @@
 import * as React from 'react';
-import {Link } from "react-router-dom";
+import { useState } from "react";
+import { Link } from "react-router-dom";
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
 // import Link from '@mui/material/Link';
+import { ToastContainer, toast } from "react-toastify";
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-
-function Copyright(props) {
-  return (
-    <Typography variant="body2" color="text.secondary" align="center" {...props}>
-      {'Copyright © '}
-      <Link color="inherit" href="https://mui.com/">
-        Your Website
-      </Link>{' '}
-      {new Date().getFullYear()}
-      {'.'}
-    </Typography>
-  );
-}
 
 const theme = createTheme();
 
@@ -35,6 +24,17 @@ export default function SignUp() {
       email: data.get('email'),
       password: data.get('password'),
     });
+  };
+
+  const [password, setPassword] = useState('');
+
+  const generatePassword = () => {
+    let pass = "";
+    let string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" + "abcdefghijklmnopqrstuvwxyz0123456789@#$";
+    for (let index = 1; index <= 10; index++) {
+      let char = Math.floor(Math.random() * string.length + 1);
+      setPassword(pass += string.charAt(char))
+    }
   };
 
   return (
@@ -94,12 +94,21 @@ export default function SignUp() {
                   fullWidth
                   name="password"
                   label="Password"
-                  type="password"
                   id="password"
+                  value={password}
                   autoComplete="new-password"
                 />
               </Grid>
             </Grid>
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              sx={{ mt: 3, mb: 2 }}
+              onClick={generatePassword}
+            >
+              Generate Password
+            </Button>
             <Button
               type="submit"
               fullWidth

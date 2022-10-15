@@ -1,6 +1,8 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const bodyParser = require('body-parser');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 const app = express();
 
@@ -15,6 +17,10 @@ const PORT = process.env.PORT;
 // parse requests of content-type - application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: true }));
 
+app.get('/', (req, res) => {
+  res.json({ message: 'Server is working on PORT 4000' });
+});
+
 app.get('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -22,10 +28,21 @@ app.get('/login', async (req, res) => {
       return res.status(400).json({ error: 'Please fill the fields.' });
     }
     const userLogin = await User.findOne({ email: email });
-    if (!userLogin) {
-      res.json({ message: 'Error' });
+    if (userLogin) {
+      const isMatch = bcrypt.compare(password, userLogin.password);
+      const token = await userLogin.generateAuthToken();
+
+      res.cookie('jwtoken', token, {
+        expires: new Date(Date.now() + 25892000000),
+        httpOnly: true,
+      });
+      if (!isMatch) {
+        res.json({ error: 'Invalid Credentials.' });
+      } else {
+        res.status(200).json({ message: 'User login successfully' });
+      }
     } else {
-      res.status(200).json({ message: 'User login successfully' });
+      res.json({ error: 'Invalid Credentials.' });
     }
   } catch (error) {
     console.log(error);
@@ -48,10 +65,6 @@ app.post('/register', async (req, res) => {
   } catch (error) {
     console.log(error);
   }
-});
-
-app.get('/login', (req, res) => {
-  res.json({ message: 'Welcome to Ropstam application.' });
 });
 
 app.listen(PORT, () => {

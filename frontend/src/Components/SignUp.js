@@ -1,45 +1,83 @@
 import * as React from 'react';
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import axios from 'axios';
+import { Link } from 'react-router-dom';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
-import TextField from '@mui/material/TextField';
 // import Link from '@mui/material/Link';
-import { ToastContainer, toast } from "react-toastify";
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { useForm } from '../customHook/useForm';
+import Controls from './controls/Controls';
 
 const theme = createTheme();
 
 export default function SignUp() {
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
+  const validate = () => {
+    let temp = {};
+
+    temp.username = values.username ? '' : 'This field is required.';
+    temp.email = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(values.email)
+      ? ''
+      : 'Email is Required and must be valid.';
+    temp.password = values.password ? '' : 'This field is required.';
+
+    setErrors({
+      ...temp,
     });
+
+    return Object.values(temp).every((x) => x === '');
   };
 
-  const [password, setPassword] = useState('');
+  const initialFValues = {
+    username: '',
+    email: '',
+    password: '',
+  };
 
   const generatePassword = () => {
-    let pass = "";
-    let string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" + "abcdefghijklmnopqrstuvwxyz0123456789@#$";
+    let pass = '';
+    let string =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZ' + 'abcdefghijklmnopqrstuvwxyz0123456789@#$';
     for (let index = 1; index <= 10; index++) {
       let char = Math.floor(Math.random() * string.length + 1);
-      setPassword(pass += string.charAt(char))
+      setValues({
+        ...values,
+        password: (pass += string.charAt(char)),
+      });
     }
   };
+  const { values, setValues, errors, setErrors, handleInputChange, resetForm } =
+    useForm(initialFValues, true, validate);
 
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    let name = data.get('username');
+    let email = data.get('email');
+    let password = data.get('password');
+    if (validate(values)) {
+      await axios
+        .post('http://localhost:4000/register', {
+          name: name,
+          email: email,
+          password: password,
+        })
+        .then((response) => console.log(response));
+      window.alert('You Are Succesfully Registered');
+
+      resetForm();
+    } else {
+      window.alert('Please Try Again');
+    }
+  };
   return (
     <ThemeProvider theme={theme}>
-      <Container component="main" maxWidth="xs">
+      <Container component='main' maxWidth='xs'>
         <CssBaseline />
         <Box
           sx={{
@@ -52,73 +90,65 @@ export default function SignUp() {
           <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
             <LockOutlinedIcon />
           </Avatar>
-          <Typography component="h1" variant="h5">
+          <Typography component='h1' variant='h5'>
             Sign up
           </Typography>
-          <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}>
+          <Box
+            component='form'
+            noValidate
+            onSubmit={handleSubmit}
+            sx={{ mt: 3 }}
+          >
             <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  autoComplete="given-name"
-                  name="firstName"
-                  required
-                  fullWidth
-                  id="firstName"
-                  label="First Name"
-                  autoFocus
+              <Grid item xs={12} sm={12}>
+                <Controls.Input
+                  name='username'
+                  label='User Name'
+                  value={values.username}
+                  onChange={handleInputChange}
+                  error={errors.username}
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  required
-                  fullWidth
-                  id="lastName"
-                  label="Last Name"
-                  name="lastName"
-                  autoComplete="family-name"
+              <Grid item xs={12} sm={12}>
+                <Controls.Input
+                  name='email'
+                  label='Email Address'
+                  value={values.email}
+                  onChange={handleInputChange}
+                  error={errors.email}
                 />
               </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  required
-                  fullWidth
-                  id="email"
-                  label="Email Address"
-                  name="email"
-                  autoComplete="email"
+              <Grid item xs={12} sm={12}>
+                <Controls.Input
+                  name='password'
+                  label='Password'
+                  value={values.password}
+                  onChange={handleInputChange}
+                  error={errors.password}
                 />
               </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  required
+              <Grid item xs={12} sm={12}>
+                <Button
                   fullWidth
-                  name="password"
-                  label="Password"
-                  id="password"
-                  value={password}
-                  autoComplete="new-password"
-                />
+                  variant='contained'
+                  sx={{ mt: 3, mb: 2 }}
+                  onClick={generatePassword}
+                >
+                  Generate Password
+                </Button>
               </Grid>
             </Grid>
             <Button
+              type='submit'
               fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2 }}
-              onClick={generatePassword}
-            >
-              Generate Password
-            </Button>
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
+              variant='contained'
               sx={{ mt: 3, mb: 2 }}
             >
               Sign Up
             </Button>
-            <Grid container justifyContent="flex-end">
+            <Grid container justifyContent='flex-end'>
               <Grid item>
-                <Link to="/signin" variant="body2">
+                <Link to='/signin' variant='body2'>
                   Already have an account? Sign in
                 </Link>
               </Grid>

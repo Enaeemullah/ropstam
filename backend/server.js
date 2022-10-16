@@ -3,10 +3,17 @@ const dotenv = require('dotenv');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const cors = require('cors');
+const middleware = require('./middleware/middleware')
 
 const app = express();
+app.use(
+  cors({
+    origin: '*',
+  })
+);
 
-dotenv.config({ path: './config.env' });
+dotenv.config();
 
 require('./db/conn');
 const User = require('./models/userSchema');
@@ -21,7 +28,7 @@ app.get('/', (req, res) => {
   res.json({ message: 'Server is working on PORT 4000' });
 });
 
-app.get('/login', async (req, res) => {
+app.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -65,6 +72,10 @@ app.post('/register', async (req, res) => {
   } catch (error) {
     console.log(error);
   }
+});
+
+app.get('/detail', middleware, (req, res) => {
+ console.log("Helo from middleware");
 });
 
 app.listen(PORT, () => {
